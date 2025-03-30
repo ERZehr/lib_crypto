@@ -32,7 +32,12 @@ class libAES
         void addRoundKey(vector<uint8_t>& block, const vector<uint8_t>& key);
         vector<uint8_t> rotate(vector<uint8_t>& subBlock, int num_rots);
         uint8_t gfMult(uint8_t data, uint8_t multiplier);
-        vector<uint8_t> calcRoundKey128(vector<uint8_t>& key, vector<uint8_t>& Gn, int round);
-        vector<uint8_t> calcRoundKey192(vector<uint8_t>& key, vector<uint8_t>& Gn, int round);
-        vector<uint8_t> calcRoundKey256(vector<uint8_t>& key, vector<uint8_t>& Gn, int round);
+        void calcRoundKey128(vector<uint8_t>& key, int round);
+        void calcRoundKey192(vector<uint8_t>& key, int round);
+        void calcRoundKey256(vector<uint8_t>& key, int round);
+        void aes128(vector<uint8_t>& block, vector<uint8_t>& key);
+        void aes192(vector<uint8_t>& block, vector<uint8_t>& key);
+        void aes256(vector<uint8_t>& block, vector<uint8_t>& key);
+
+        
 };

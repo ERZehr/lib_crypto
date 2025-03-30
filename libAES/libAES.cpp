@@ -1,5 +1,8 @@
 #include <vector>
 #include <stdint.h>
+#include <iomanip>
+#include <sstream>
+#include <iostream>
 #include "libAES.h"
 
 using namespace std;
@@ -97,7 +100,8 @@ uint8_t libAES::gfMult(uint8_t data, uint8_t multiplier)
     }
 }
 
-vector<uint8_t> libAES::calcRoundKey128(vector<uint8_t>& key, vector<uint8_t>& Gn, int round)
+
+void libAES::calcRoundKey128(vector<uint8_t>& key, int round)
 {
     uint8_t Rcon[10] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36};
     vector<uint8_t> tail = {key[13], key[14], key[15], key[12]};
@@ -115,6 +119,199 @@ vector<uint8_t> libAES::calcRoundKey128(vector<uint8_t>& key, vector<uint8_t>& G
     for(int i = 4; i < 16; i++) {
         key[i] ^= key[i-4];
     }
+}
 
-    return tail;
+
+void libAES::calcRoundKey192(vector<uint8_t>& key, int round)
+{
+    uint8_t Rcon[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+    vector<uint8_t> tail = {key[21], key[22], key[23], key[20]};
+
+    for (int i = 0; i < 4; i++) {
+        tail[i] = SBox_consts[tail[i]];
+    }
+
+    tail[0] ^= Rcon[round - 1];
+
+    for(int i = 0; i < 4; i++) {
+        key[i] ^= tail[i];
+    }
+
+    for(int i = 4; i < 24; i++) {
+        key[i] ^= key[i-4];
+    }
+}
+
+
+void libAES::calcRoundKey256(vector<uint8_t>& key, int round)
+{
+    uint8_t Rcon[7] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40};
+    vector<uint8_t> tail = {key[29], key[30], key[31], key[28]};
+
+    for (int i = 0; i < 4; i++) {
+        tail[i] = SBox_consts[tail[i]];
+    }
+
+    tail[0] ^= Rcon[round - 1];
+
+    for(int i = 0; i < 4; i++) {
+        key[i] ^= tail[i];
+    }
+
+    for(int i = 4; i < 16; i++) {
+        key[i] ^= key[i-4];
+    }
+
+    for (int i = 16; i < 20; i++) {
+        key[i] ^= SBox_consts[key[i-4]];
+    }
+
+    for(int i = 20; i < 32; i++) {
+        key[i] ^= key[i-4];
+    }
+}
+
+
+void libAES::aes128(vector<uint8_t>& block, vector<uint8_t>& key)
+{
+    libAES AES;
+    AES.addRoundKey(block, key);
+
+    for(int i = 1; i < 10; i++)
+    {
+        AES.sBox(block);
+        AES.shiftRows(block);
+        AES.mixColumns(block);
+        AES.calcRoundKey128(key, i);
+        AES.addRoundKey(block, key);
+    }
+
+    AES.sBox(block);
+    AES.shiftRows(block);
+    AES.calcRoundKey128(key, 10);
+    AES.addRoundKey(block, key);
+}
+
+
+void libAES::aes192(vector<uint8_t>& block, vector<uint8_t>& key)
+{
+    libAES AES;
+
+    vector<uint8_t> round_key; // spliced key
+    int index; // index of calculated key
+    int key_counter = 1; // pseudo round number ofr key calculation
+
+    // round 0
+    for (index = 0; index < 16; index++)
+    {
+        round_key.push_back(key[index]);
+    }
+    AES.addRoundKey(block, round_key);
+    round_key.clear();
+
+    // intermediate key splitting (rounds 1-11)
+    for(int i = 1; i < 12; i++)
+    {
+        AES.sBox(block);
+        AES.shiftRows(block);
+        AES.mixColumns(block);
+
+        if(index == 0) // generate new, use first 4 words
+        {
+            AES.calcRoundKey192(key, key_counter++);
+            for (index = 0; index < 16; index++)
+            {
+                round_key.push_back(key[index]);
+            }
+        }
+        else if (index == 8) // use last 4 words
+        {
+            for (index = 8; index < 24; index++)
+            {
+                round_key.push_back(key[index]);
+            }
+            index = 0;
+        }
+        else // use last 2 words, generate new, user first 2 words
+        {
+            for (index = 16; index < 24; index++)
+            {
+                round_key.push_back(key[index]);
+            }
+            index = 0;
+            AES.calcRoundKey192(key, key_counter++);
+            for (index = 0; index < 8; index++)
+            {
+                round_key.push_back(key[index]);
+            }
+        }
+        AES.addRoundKey(block, round_key);
+        round_key.clear();
+    }
+
+    // round 12
+    AES.sBox(block);
+    AES.shiftRows(block);
+    AES.calcRoundKey192(key, key_counter++);
+    for (index = 0; index < 16; index++)
+    {
+        round_key.push_back(key[index]);
+    }
+    AES.addRoundKey(block, round_key);
+    
+}
+
+
+void libAES::aes256(vector<uint8_t>& block, vector<uint8_t>& key)
+{
+    libAES AES;
+
+    vector<uint8_t> round_key; // spliced key
+    int index; // index of calculated key
+    int key_counter = 1; // pseudo round number ofr key calculation
+
+    // round 0
+    for (index = 0; index < 16; index++)
+    {
+        round_key.push_back(key[index]);
+    }
+    AES.addRoundKey(block, round_key);
+    round_key.clear();
+
+    // intermediate key splitting (rounds 1-11)
+    for(int i = 1; i < 14; i++)
+    {
+        AES.sBox(block);
+        AES.shiftRows(block);
+        AES.mixColumns(block);
+    
+        if(index == 0) // generate new, use first 4 words
+        {
+            AES.calcRoundKey256(key, key_counter++);
+            for (index = 0; index < 16; index++)
+            {
+                round_key.push_back(key[index]);
+            }
+        }
+        else // use last 4 words
+        {
+            for (index = 16; index < 32; index++)
+            {
+                round_key.push_back(key[index]);
+            }
+            index = 0;
+        }
+        AES.addRoundKey(block, round_key);
+        round_key.clear();
+    }
+
+    // round 14
+    AES.sBox(block);
+    AES.shiftRows(block);
+    AES.calcRoundKey256(key, key_counter++);
+    for (index = 0; index < 16; index++)
+    {
+        round_key.push_back(key[index]);
+    }
+    AES.addRoundKey(block, round_key);
 }
