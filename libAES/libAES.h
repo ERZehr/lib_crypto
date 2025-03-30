@@ -70,13 +70,13 @@ class libAES
         void aes192Inv(vector<uint8_t>& block, vector<uint8_t>& key);
         void aes256Inv(vector<uint8_t>& block, vector<uint8_t>& key);
 
-        void aesECB(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec);
-        void aesCBC(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec);
-        void aesCFB(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec);
-        void aesOFB(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec);
-        void aesCTR(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec);
-        void aesGCM(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec);
-        void aesXTS(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec);
+        void aesECB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
+        void aesCBC(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
+        void aesCFB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
+        void aesOFB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
+        void aesCTR(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
+        void aesGCM(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
+        void aesXTS(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
 
         
 };

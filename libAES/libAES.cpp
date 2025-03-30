@@ -640,73 +640,73 @@ void libAES::aes256Inv(vector<uint8_t>& block, vector<uint8_t>& key)
 
 
 
-void libAES::aesECB(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec)
+void libAES::aesECB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
 {
     libAES AES;
     if(!enc_dec) // encryption
     {
         if(key.size() == 16) // 128 bit
         {
-            aes128(block, key);
+            AES.aes128(block, key);
         }
         else if(key.size() == 24) // 192 bit
         {
-            aes192(block, key);
+            AES.aes192(block, key);
         }
         else // 256 bit
         {
-            aes256(block, key);
+            AES.aes256(block, key);
         }
     }
     else // decryption
     {
         if(key.size() == 16) // 128 bit
         {
-            aes128Inv(block, key);
+            AES.aes128Inv(block, key);
         }
         else if(key.size() == 24) // 192 bit
         {
-            aes192Inv(block, key);
+            AES.aes192Inv(block, key);
         }
         else // 256 bit
         {
-            aes256Inv(block, key);
+            AES.aes256Inv(block, key);
         }
     }
 }
 
 
-void libAES::aesCBC(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec)
+void libAES::aesCBC(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
 {
 
 }
 
 
-void libAES::aesCFB(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec)
+void libAES::aesCFB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
 {
 
 }
 
 
-void libAES::aesOFB(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec)
+void libAES::aesOFB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
 {
 
 }
 
 
-void libAES::aesCTR(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec)
+void libAES::aesCTR(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
 {
 
 }
 
 
-void libAES::aesGCM(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec)
+void libAES::aesGCM(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
 {
 
 }
 
 
-void libAES::aesXTS(vector<uint8_t>& block, vector<uint8_t>& key, bool enc_dec)
+void libAES::aesXTS(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
 {
 
 }
