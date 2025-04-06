@@ -45,6 +45,12 @@ class libAES
         };
     
 
+        void printBinaryVector(const vector<uint8_t>& binary_data);
+        void padBinary(vector<uint8_t>& binary_data);
+        void unpadBinary(vector<uint8_t>& binary_data);
+        vector<uint8_t> fileToBinary(const string& filename);
+        void binaryToFile(const vector<uint8_t>& writeVector, const string& filename);
+
         void sBox(vector<uint8_t>& block);
         void shiftRows(vector<uint8_t>& block);
         void mixColumns(vector<uint8_t>& block);
@@ -70,7 +76,10 @@ class libAES
         void aes192Inv(vector<uint8_t>& block, vector<uint8_t>& key);
         void aes256Inv(vector<uint8_t>& block, vector<uint8_t>& key);
 
-        void aesECB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
+        vector<uint8_t> gfMult128(const vector<uint8_t>& block1, const vector<uint8_t>& block2);
+
+        void aesECB(vector<uint8_t>& binaryData, vector<uint8_t>& key, int enc_dec);
+        void aesECB(const string& filename, vector<uint8_t>& key, int enc_dec);
         void aesCBC(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
         void aesCFB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
         void aesOFB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);

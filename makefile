@@ -1,7 +1,7 @@
 CC = g++
 AS = as
 CFLAGS = -std=c++11 -Wall -I./libAES  # Include directories
-OPTS = -O0
+OPTS = -O0 -g
 
 # Directories
 SRC_DIRS = libAES main
