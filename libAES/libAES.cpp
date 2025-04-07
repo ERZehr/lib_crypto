@@ -738,69 +738,32 @@ void libAES::aesECB(vector<uint8_t>& binaryData, vector<uint8_t>& key, int enc_d
     if(!enc_dec) // encryption
     {
         AES.padBinary(binaryData);
-
-        if(key.size() == 16) // 128 bit
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            key = key_saver;
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            if(key.size() == 16) // 128 bit
                 AES.aes128(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else if(key.size() == 24) // 192 bit
                 AES.aes192(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else // 256 bit
                 AES.aes256(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
         }
     }
     else // decryption
     {
-        if(key.size() == 16) // 128 bit
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            key = key_saver;
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            if(key.size() == 16) // 128 bit
                 AES.aes128Inv(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else if(key.size() == 24) // 192 bit
                 AES.aes192Inv(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else
                 AES.aes256Inv(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
         }
         AES.unpadBinary(binaryData);
     }
@@ -817,69 +780,32 @@ void libAES::aesECB(const string& filename, vector<uint8_t>& key, int enc_dec)
     if(!enc_dec) // encryption
     {
         AES.padBinary(binaryData);
-
-        if(key.size() == 16) // 128 bit
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            key = key_saver;
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            if(key.size() == 16) // 128 bit
                 AES.aes128(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else if(key.size() == 24) // 192 bit
                 AES.aes192(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else // 256 bit
                 AES.aes256(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
         }
     }
     else // decryption
     {
-        if(key.size() == 16) // 128 bit
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            key = key_saver;
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            if(key.size() == 16) // 128 bit
                 AES.aes128Inv(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else if(key.size() == 24) // 192 bit
                 AES.aes192Inv(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else
                 AES.aes256Inv(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-            }
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
         }
         AES.unpadBinary(binaryData);
     }
@@ -899,84 +825,39 @@ void libAES::aesCBC(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
     {
         AES.padBinary(binaryData);
 
-        if(key.size() == 16) // 128 bit
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv); // This is just an XOR, so im reusing it here. 
+            key = key_saver;
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            AES.addRoundKey(block, current_iv); // This is just an XOR, so im reusing it here. 
+            if(key.size() == 16)
                 AES.aes128(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv); // This is just an XOR, so im reusing it here. 
+            else if(key.size() == 24)
                 AES.aes192(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv); // This is just an XOR, so im reusing it here. 
+            else
                 AES.aes256(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-            }
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+            current_iv = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
         }
     }
     else // decryption
     {
         vector<uint8_t> save_cipher;
-        if(key.size() == 16) // 128 bit
+
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block; 
+            key = key_saver;
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            save_cipher = block;
+            if(key.size() == 16)
                 AES.aes128Inv(block, key);
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block; 
+            else if(key.size() == 24) 
                 AES.aes192Inv(block, key);
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block; 
+            else
                 AES.aes256Inv(block, key);
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
+            AES.addRoundKey(block, current_iv);
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+            current_iv = save_cipher;
         }
         AES.unpadBinary(binaryData);
     }
@@ -995,84 +876,39 @@ void libAES::aesCBC(const string& filename, vector<uint8_t>& key, const vector<u
     {
         AES.padBinary(binaryData);
 
-        if(key.size() == 16) // 128 bit
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv); // This is just an XOR, so im reusing it here. 
+            key = key_saver;
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            AES.addRoundKey(block, current_iv); // This is just an XOR, so im reusing it here. 
+            if(key.size() == 16)
                 AES.aes128(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv); // This is just an XOR, so im reusing it here. 
+            else if(key.size() == 24)
                 AES.aes192(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv); // This is just an XOR, so im reusing it here. 
+            else
                 AES.aes256(block, key);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-            }
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+            current_iv = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
         }
     }
     else // decryption
     {
         vector<uint8_t> save_cipher;
-        if(key.size() == 16) // 128 bit
+
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block; 
+            key = key_saver;
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            save_cipher = block;
+            if(key.size() == 16)
                 AES.aes128Inv(block, key);
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block; 
+            else if(key.size() == 24) 
                 AES.aes192Inv(block, key);
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block; 
+            else
                 AES.aes256Inv(block, key);
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
+            AES.addRoundKey(block, current_iv);
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+            current_iv = save_cipher;
         }
         AES.unpadBinary(binaryData);
     }
@@ -1091,84 +927,39 @@ void libAES::aesCFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
     {
         AES.padBinary(binaryData);
 
-        if(key.size() == 16) // 128 bit
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
+            key = key_saver;
+            if(key.size() == 16) // 128 bit
                 AES.aes128(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = block;
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
+            else if(key.size() == 24) // 192 bit
                 AES.aes192(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = block;
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
+            else // 256 bit
                 AES.aes256(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = block;
-            }
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            AES.addRoundKey(block, current_iv);
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+            current_iv = block;
         }
     }
     else // decryption
     {
         vector<uint8_t> save_cipher;
-        if(key.size() == 16) // 128 bit
+
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
+            key = key_saver;
+            if(key.size() == 16) // 128 bit
                 AES.aes128(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block;
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
+            else if(key.size() == 24) // 192 bit
                 AES.aes192(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block;
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                AES.aes256(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block;
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
+            else
+                AES.aes256(current_iv, key);// 256 bit
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            save_cipher = block;
+            AES.addRoundKey(block, current_iv);
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+            current_iv = save_cipher;
         }
         AES.unpadBinary(binaryData);
     }
@@ -1187,84 +978,39 @@ void libAES::aesCFB(const string& filename, vector<uint8_t>& key, const vector<u
     {
         AES.padBinary(binaryData);
 
-        if(key.size() == 16) // 128 bit
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
+            key = key_saver;
+            if(key.size() == 16) // 128 bit
                 AES.aes128(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = block;
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
+            else if(key.size() == 24) // 192 bit
                 AES.aes192(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = block;
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
+            else // 256 bit
                 AES.aes256(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = block;
-            }
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            AES.addRoundKey(block, current_iv);
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+            current_iv = block;
         }
     }
     else // decryption
     {
         vector<uint8_t> save_cipher;
-        if(key.size() == 16) // 128 bit
+
+        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
+            key = key_saver;
+            if(key.size() == 16) // 128 bit
                 AES.aes128(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block;
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
-        }
-        else if(key.size() == 24) // 192 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
+            else if(key.size() == 24) // 192 bit
                 AES.aes192(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block;
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
-        }
-        else // 256 bit
-        {
-            for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
-            {
-                key = key_saver;
-                AES.aes256(current_iv, key);
-                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-                save_cipher = block;
-                AES.addRoundKey(block, current_iv);
-                copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
-                current_iv = save_cipher;
-            }
+            else
+                AES.aes256(current_iv, key);// 256 bit
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            save_cipher = block;
+            AES.addRoundKey(block, current_iv);
+            copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+            current_iv = save_cipher;
         }
         AES.unpadBinary(binaryData);
     }
@@ -1272,26 +1018,77 @@ void libAES::aesCFB(const string& filename, vector<uint8_t>& key, const vector<u
 }
 
 
-
-
-
-
-
-
-
-
-
-// void libAES::aesOFB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
-// {
-
-// }
-
-
-
-void libAES::aesOFB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
+void libAES::aesOFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec)
 {
+    libAES AES;
+    vector<uint8_t> block;
+    vector<uint8_t> key_saver = key;
+    vector<uint8_t> current_iv = iv;
+    vector<uint8_t> save_new_iv;
 
+    if(!enc_dec)
+        AES.padBinary(binaryData);
+
+    // encryption and decryption are symetric
+    for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
+    {
+        key = key_saver;
+        if(key.size() == 16)
+            AES.aes128(current_iv, key);
+        else if(key.size() == 24)
+            AES.aes192(current_iv, key);
+        else
+            AES.aes256(current_iv, key);
+        save_new_iv = current_iv;
+        block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+        AES.addRoundKey(block, current_iv);
+        copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+        current_iv = save_new_iv;
+    }
+
+    if(enc_dec)
+        AES.unpadBinary(binaryData);
 }
+
+
+void libAES::aesOFB(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec)
+{
+    libAES AES;
+    vector<uint8_t> binaryData = AES.fileToBinary(filename);
+    vector<uint8_t> key_saver = key;
+    vector<uint8_t> current_iv = iv;
+    vector<uint8_t> block;
+    vector<uint8_t> save_new_iv;
+
+    if(!enc_dec)
+        AES.padBinary(binaryData);
+
+    // encryption and decryption are symetric
+    for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
+    {
+        key = key_saver;
+        if(key.size() == 16)
+            AES.aes128(current_iv, key);
+        else if(key.size() == 24)
+            AES.aes192(current_iv, key);
+        else
+            AES.aes256(current_iv, key);
+        save_new_iv = current_iv;
+        block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+        AES.addRoundKey(block, current_iv);
+        copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+        current_iv = save_new_iv;
+    }
+
+    if(enc_dec)
+        AES.unpadBinary(binaryData);
+
+    AES.binaryToFile(binaryData, filename);
+}
+
+
+
+
 
 
 void libAES::aesCTR(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)

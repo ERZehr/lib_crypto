@@ -84,7 +84,9 @@ class libAES
         void aesCBC(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
         void aesCFB(vector<uint8_t>& block, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
         void aesCFB(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
-        void aesOFB(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
+        void aesOFB(vector<uint8_t>& block, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
+        void aesOFB(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
+        
         void aesCTR(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
         void aesGCM(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
         void aesXTS(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
