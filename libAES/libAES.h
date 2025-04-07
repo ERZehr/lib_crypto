@@ -76,7 +76,7 @@ class libAES
         void aes192Inv(vector<uint8_t>& block, vector<uint8_t>& key);
         void aes256Inv(vector<uint8_t>& block, vector<uint8_t>& key);
 
-        vector<uint8_t> gfMult128(const vector<uint8_t>& block1, const vector<uint8_t>& block2);
+        vector<uint8_t> gfMult128(const vector<uint8_t>& X, const vector<uint8_t>& Y);
 
         void aesECB(vector<uint8_t>& binaryData, vector<uint8_t>& key, int enc_dec);
         void aesECB(const string& filename, vector<uint8_t>& key, int enc_dec);
@@ -87,12 +87,12 @@ class libAES
         void aesOFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
         void aesOFB(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
         
-        void aesCTR(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, vector<uint8_t> counter = {0x00,0x00,0x00,0x00}, int enc_dec);
-        void aesCTR(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, vector<uint8_t> counter = {0x00,0x00,0x00,0x00}, int enc_dec);
-        void aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, vector<uint8_t> counter = {0x00,0x00,0x00,0x00}, int enc_dec);
-        void aesGCM(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, vector<uint8_t> counter = {0x00,0x00,0x00,0x00}, int enc_dec);
+        void aesCTR(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter);
+        void aesCTR(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter);
+        void aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter);
+        void aesGCM(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter);
         void aesPCBC(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
         void aesPCBC(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
         void aesXTS(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
-        void aesXTS(const string& filename, vector<uint8_t>& key, int enc_dec)
+        void aesXTS(const string& filename, vector<uint8_t>& key, int enc_dec);
 };
