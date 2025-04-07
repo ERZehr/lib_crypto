@@ -1091,19 +1091,54 @@ void libAES::aesOFB(const string& filename, vector<uint8_t>& key, const vector<u
 
 
 
-void libAES::aesCTR(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
+void libAES::aesCTR(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, vector<uint8_t> counter = {0x00,0x00,0x00,0x00}, int enc_dec)
 {
 
 }
 
 
-void libAES::aesGCM(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
+void libAES::aesCTR(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, vector<uint8_t> counter = {0x00,0x00,0x00,0x00}, int enc_dec)
 {
 
 }
 
 
-void libAES::aesXTS(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec)
+
+
+void libAES::aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, vector<uint8_t> counter = {0x00,0x00,0x00,0x00}, int enc_dec)
+{
+
+}
+
+
+void libAES::aesGCM(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, vector<uint8_t> counter = {0x00,0x00,0x00,0x00}, int enc_dec)
+{
+
+}
+
+
+
+
+void libAES::aesPCBC(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec)
+{
+
+}
+
+
+void libAES::aesPCBC(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec)
+{
+
+}
+
+
+
+
+void libAES::aesXTS(vector<uint8_t>& binaryData, vector<uint8_t>& key, int enc_dec)
+{
+
+}
+
+void libAES::aesXTS(const string& filename, vector<uint8_t>& key, int enc_dec)
 {
 
 }
