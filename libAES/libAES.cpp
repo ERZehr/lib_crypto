@@ -1109,6 +1109,7 @@ void libAES::aesCTR(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
     vector<uint8_t> key_saver = key;
     vector<uint8_t> nonce_counter;
     vector<uint8_t> nonce_counter_saver = iv;
+    uint32_t num = (static_cast<uint32_t>(counter[0]) << 24) | (static_cast<uint32_t>(counter[1]) << 16) | (static_cast<uint32_t>(counter[2]) << 8)  | (static_cast<uint32_t>(counter[3]));
 
     for(int i = 0; i < 4; i ++)
         nonce_counter_saver.push_back(counter[i]);
@@ -1129,6 +1130,13 @@ void libAES::aesCTR(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
         block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
         AES.addRoundKey(block, nonce_counter);
         copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+
+        // cumbersome increment of iv
+        num++;
+        for (int i = 0; i < 4; i++)
+            nonce_counter_saver.pop_back();
+        for (int i = 0; i < 4; i++)
+            nonce_counter_saver.push_back(num >> ((3 - i) * 8) & 0xFF);
     }
 
     if(enc_dec) // decryption
@@ -1140,10 +1148,11 @@ void libAES::aesCTR(const string& filename, vector<uint8_t>& key, const vector<u
 {
     libAES AES;
     vector<uint8_t> binaryData = AES.fileToBinary(filename);
-    vector<uint8_t> key_saver = key;
     vector<uint8_t> block;
+    vector<uint8_t> key_saver = key;
     vector<uint8_t> nonce_counter;
     vector<uint8_t> nonce_counter_saver = iv;
+    uint32_t num = (static_cast<uint32_t>(counter[0]) << 24) | (static_cast<uint32_t>(counter[1]) << 16) | (static_cast<uint32_t>(counter[2]) << 8)  | (static_cast<uint32_t>(counter[3]));
 
     for(int i = 0; i < 4; i ++)
         nonce_counter_saver.push_back(counter[i]);
@@ -1164,6 +1173,13 @@ void libAES::aesCTR(const string& filename, vector<uint8_t>& key, const vector<u
         block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
         AES.addRoundKey(block, nonce_counter);
         copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+
+        // cumbersome increment of iv
+        num++;
+        for (int i = 0; i < 4; i++)
+            nonce_counter_saver.pop_back();
+        for (int i = 0; i < 4; i++)
+            nonce_counter_saver.push_back(num >> ((3 - i) * 8) & 0xFF);
     }
 
     if(enc_dec) // decryption
@@ -1175,40 +1191,49 @@ void libAES::aesCTR(const string& filename, vector<uint8_t>& key, const vector<u
 
 
 
-void libAES::aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter = {0x00,0x00,0x00,0x00})
-{
+// void libAES::aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& AAD, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter = {0x00,0x00,0x00,0x00})
+// {
+//     libAES AES;
+//     vector<uint8_t> block;
+//     vector<uint8_t> key_saver = key;
+//     vector<uint8_t> nonce_counter;
+//     vector<uint8_t> nonce_counter_saver = iv;
+//     vector<uint8_t> H = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+//     int length = block.size();
 
-}
+//     for(int i = 0; i < 4; i ++)
+//         nonce_counter_saver.push_back(counter[i]);
 
-
-void libAES::aesGCM(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter = {0x00,0x00,0x00,0x00})
-{
-
-}
-
-
-
-
-void libAES::aesPCBC(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec)
-{
-
-}
-
-
-void libAES::aesPCBC(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec)
-{
-
-}
+//     AES.aes128(H);
+//     for(int i = 0; i < 16; i ++)
+//         H.pop_back();
 
 
 
+//     if(!enc_dec) // encryption
+//         AES.padBinary(binaryData);
 
-void libAES::aesXTS(vector<uint8_t>& binaryData, vector<uint8_t>& key, int enc_dec)
-{
+//     for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
+//     {
+//         key = key_saver;
+//         nonce_counter = nonce_counter_saver;
+//         if(key.size() == 16) // 128 bit
+//             AES.aes128(nonce_counter, key);
+//         else if(key.size() == 24) // 192 bit
+//             AES.aes192(nonce_counter, key);
+//         else // 256 bit
+//             AES.aes256(nonce_counter, key);
+//         block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+//         AES.addRoundKey(block, nonce_counter);
+//         copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+//     }
 
-}
+//     if(enc_dec) // decryption
+//         AES.unpadBinary(binaryData);
+// }
 
-void libAES::aesXTS(const string& filename, vector<uint8_t>& key, int enc_dec)
-{
 
-}
+// void libAES::aesGCM(const string& filename, const string& AAD, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter = {0x00,0x00,0x00,0x00})
+// {
+
+// }

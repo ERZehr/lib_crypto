@@ -89,10 +89,6 @@ class libAES
         
         void aesCTR(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter);
         void aesCTR(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter);
-        void aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter);
-        void aesGCM(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter);
-        void aesPCBC(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
-        void aesPCBC(const string& filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec);
-        void aesXTS(vector<uint8_t>& block, vector<uint8_t>& key, int enc_dec);
-        void aesXTS(const string& filename, vector<uint8_t>& key, int enc_dec);
+        void aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& AAD, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter);
+        void aesGCM(const string& filename, const string& AAD, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, vector<uint8_t> counter);
 };
