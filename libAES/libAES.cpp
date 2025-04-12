@@ -937,8 +937,6 @@ void libAES::aesCFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
 
     if(!enc_dec) // encryption
     {
-        AES.padBinary(binaryData);
-
         for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
             key = key_saver;
@@ -948,7 +946,12 @@ void libAES::aesCFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
                 AES.aes192(current_iv, key);
             else // 256 bit
                 AES.aes256(current_iv, key);
-            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+
+            if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
+                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else
+                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.end());
+        
             AES.addRoundKey(block, current_iv);
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
             current_iv = block;
@@ -967,13 +970,17 @@ void libAES::aesCFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
                 AES.aes192(current_iv, key);
             else
                 AES.aes256(current_iv, key);// 256 bit
-            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            
+            if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
+                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else
+                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.end());
+
             save_cipher = block;
             AES.addRoundKey(block, current_iv);
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
             current_iv = save_cipher;
         }
-        AES.unpadBinary(binaryData);
     }
 }
 
@@ -988,8 +995,6 @@ void libAES::aesCFB(const string& filename, vector<uint8_t>& key, const vector<u
 
     if(!enc_dec) // encryption
     {
-        AES.padBinary(binaryData);
-
         for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
         {
             key = key_saver;
@@ -999,7 +1004,12 @@ void libAES::aesCFB(const string& filename, vector<uint8_t>& key, const vector<u
                 AES.aes192(current_iv, key);
             else // 256 bit
                 AES.aes256(current_iv, key);
-            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            
+            if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
+                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else
+                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.end());
+
             AES.addRoundKey(block, current_iv);
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
             current_iv = block;
@@ -1018,13 +1028,17 @@ void libAES::aesCFB(const string& filename, vector<uint8_t>& key, const vector<u
                 AES.aes192(current_iv, key);
             else
                 AES.aes256(current_iv, key);// 256 bit
-            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+
+            if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
+                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+            else
+                block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.end());
+
             save_cipher = block;
             AES.addRoundKey(block, current_iv);
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
             current_iv = save_cipher;
         }
-        AES.unpadBinary(binaryData);
     }
     AES.binaryToFile(binaryData, filename);
 }
@@ -1038,11 +1052,8 @@ void libAES::aesOFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
     vector<uint8_t> current_iv = iv;
     vector<uint8_t> save_new_iv;
 
-    if(!enc_dec)
-        AES.padBinary(binaryData);
-
     // encryption and decryption are symetric
-    for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
+    for(int i = 0; i < (static_cast<int>(binaryData.size()) + 15) / 16 ; i++)
     {
         key = key_saver;
         if(key.size() == 16)
@@ -1051,15 +1062,16 @@ void libAES::aesOFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
             AES.aes192(current_iv, key);
         else
             AES.aes256(current_iv, key);
+
         save_new_iv = current_iv;
-        block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+        if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+        else
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.end());
         AES.addRoundKey(block, current_iv);
         copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
         current_iv = save_new_iv;
     }
-
-    if(enc_dec)
-        AES.unpadBinary(binaryData);
 }
 
 
@@ -1072,11 +1084,8 @@ void libAES::aesOFB(const string& filename, vector<uint8_t>& key, const vector<u
     vector<uint8_t> block;
     vector<uint8_t> save_new_iv;
 
-    if(!enc_dec)
-        AES.padBinary(binaryData);
-
     // encryption and decryption are symetric
-    for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
+    for(int i = 0; i < (static_cast<int>(binaryData.size()) + 15) / 16 ; i++)
     {
         key = key_saver;
         if(key.size() == 16)
@@ -1085,15 +1094,16 @@ void libAES::aesOFB(const string& filename, vector<uint8_t>& key, const vector<u
             AES.aes192(current_iv, key);
         else
             AES.aes256(current_iv, key);
+
         save_new_iv = current_iv;
-        block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+        if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+        else
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.end());
         AES.addRoundKey(block, current_iv);
         copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
         current_iv = save_new_iv;
     }
-
-    if(enc_dec)
-        AES.unpadBinary(binaryData);
 
     AES.binaryToFile(binaryData, filename);
 }
