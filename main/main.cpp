@@ -1,56 +1,191 @@
 #include <iostream>
 #include <stdint.h>
 #include <vector>
-#include <iomanip>
-#include <sstream>
+//#include <fstream>
+//#include <iomanip>
+//#include <sstream>
+#include <stdexcept>
+//#include <cctype>
 #include "libAES.h"
 
 using namespace std;
 
+vector<uint8_t> fromHexString(const string& hex);
+
 int main(int argc, char* argv[])
 {
-    vector<uint8_t> block = {0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34};
-    vector<uint8_t> key = {0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
-    vector<uint8_t> Gn = {0x00,0x00,0x00,0x01};
-
+    string mode = argv[1];
     libAES AES;
 
-
-    for(int i = 0; i < 16; i++)
+    if(mode == "ECB")
     {
-        stringstream ss;
-        ss << hex << setw(2) << setfill('0') << (int)block[i];
-        string hexStr = ss.str();
-        cout << hexStr << " ";
+        if(argc != 5)
+            throw("Error: Incorrect number of arguments for ECB mode");
+        string filename = argv[2];
+        vector<uint8_t> key = fromHexString(argv[3]);
+        int enc_dec = stoi(argv[4]);
+        AES.aesECB(filename, key, enc_dec);
     }
-    cout << endl;
-    
-    AES.addRoundKey(block, key);
-
-    for(int i = 1; i < 10; i++)
+    else if(mode == "CBC")
     {
-        AES.sBox(block);
-        AES.shiftRows(block);
-        AES.mixColumns(block);
-        Gn = AES.calcRoundKey128(key, Gn, i);
-        AES.addRoundKey(block, key);
+        if(argc != 6)
+            throw("Error: Incorrect number of arguments for CBC mode");
+        string filename = argv[2];
+        vector<uint8_t> key = fromHexString(argv[3]);
+        vector<uint8_t> iv = fromHexString(argv[4]);
+        int enc_dec = stoi(argv[5]);
+        AES.aesCBC(filename, key, iv, enc_dec);
     }
-
-    AES.sBox(block);
-    AES.shiftRows(block);
-    Gn = AES.calcRoundKey128(key, Gn, 10);
-    AES.addRoundKey(block, key);
-
-    for(int i = 0; i < 16; i++)
+    else if(mode == "CFB")
     {
-        stringstream ss;
-        ss << hex << setw(2) << setfill('0') << (int)block[i];
-        string hexStr = ss.str();
-        cout << hexStr << " ";
+        if(argc != 6)
+            throw("Error: Incorrect number of arguments for CFB mode");
+        string filename = argv[2];
+        vector<uint8_t> key = fromHexString(argv[3]);
+        vector<uint8_t> iv = fromHexString(argv[4]);
+        int enc_dec = stoi(argv[5]);
+        AES.aesCFB(filename, key, iv, enc_dec);
     }
-    cout << endl;
+    else if(mode == "OFB")
+    {
+        if(argc != 6)
+            throw("Error: Incorrect number of arguments for OFB mode");
+        string filename = argv[2];
+        vector<uint8_t> key = fromHexString(argv[3]);
+        vector<uint8_t> iv = fromHexString(argv[4]);
+        int enc_dec = stoi(argv[5]);
+        AES.aesOFB(filename, key, iv, enc_dec);
+    }
+    else if(mode == "CTR")
+    {
+        if(argc < 5 || argc > 7)
+            throw("Error: Incorrect number of arguments for CTR mode");
+        string filename = argv[2];
+        vector<uint8_t> key = fromHexString(argv[3]);
+        vector<uint8_t> iv = fromHexString(argv[4]);
+        int enc_dec = stoi(argv[5]);
+        vector<uint8_t> counter;
+        if(argc == 7)
+            counter = fromHexString(argv[6]);
+        else
+            counter = fromHexString("00000001");
+        AES.aesCTR(filename, key, iv, enc_dec, counter);
+    }
+    else if(mode == "GCM")
+    {
+        if(argc < 5 || argc > 11)
+            throw("Error: Incorrect number of arguments for CTR mode");
+        string filename = argv[2];
+        vector<uint8_t> key = fromHexString(argv[3]);
+        vector<uint8_t> iv = fromHexString(argv[4]);
+        int enc_dec = stoi(argv[5]);
+        
+        vector<uint8_t> counter = {};
+        vector<uint8_t> tag = {};
+        string AAD = "";
+        for(int i = 7; i < argc ; i+=2)
+        {
+            if(string(argv[i]) == "-tag")
+                tag = fromHexString(argv[i + 1]);
+            else if(string(argv[i]) == "-aad")
+                AAD = argv[i + 1];
+            else if(string(argv[i]) == "-ctr")
+                counter = fromHexString(argv[i + 1]);
+            else
+                throw("Error: No argument " + string(argv[i]));
+        }
+        if(counter.empty())
+            counter = fromHexString("00000001");
 
+        AES.aesGCM(filename, AAD, key, iv, enc_dec, tag, counter);
+    }
+    else
+        throw("No Mode " + string(argv[1]));
     return 0;
 }
 
 
+vector<uint8_t> fromHexString(const string& hex) {
+    if (hex.length() % 2 != 0)
+        throw invalid_argument("Hex string must have an even length.");
+
+    vector<uint8_t> result;
+    result.reserve(hex.length() / 2);
+
+    for (size_t i = 0; i < hex.length(); i += 2) {
+        string byteStr = hex.substr(i, 2);
+        uint8_t byte = static_cast<uint8_t>(stoi(byteStr, nullptr, 16));
+        result.push_back(byte);
+    }
+
+    return result;
+}
+
+
+// int main(int argc, char* argv[])
+// {
+//     vector<uint8_t> key = fromHexString("feffe9928665731c6d6a8f9467308308feffe9928665731c6d6a8f9467308308");
+//     vector<uint8_t> Plaintext = fromHexString("d9313225f88406e5a55909c5aff5269a86a7a9531534f7da2e4c303d8a318a721c3c0c95956809532fcf0e2449a6b525b16aedf5aa0de657ba637b39");
+//     vector<uint8_t> AAD = fromHexString("feedfacedeadbeeffeedfacedeadbeefabaddad2");
+//     vector<uint8_t> IV = fromHexString("9313225df88406e555909c5aff5269aa6a7a9538534f7da1e4c303d2a318a728c3c0c95156809539fcf0e2429a6b525416aedbf5a0de6a57a637b39b");
+//     vector<uint8_t> counter = fromHexString("00000001");
+//     vector<uint8_t> expected_tag = fromHexString("");
+
+
+//     cout << toHexString2(key) << endl;
+//     cout << toHexString2(IV) << endl;
+//     cout << toHexString2(Plaintext) << endl;
+//     cout << toHexString2(AAD) << endl;
+//     cout << toHexString2(counter) << endl;
+//     cout << toHexString2(expected_tag) << endl;
+
+
+//     libAES AES;
+
+//     vector<uint8_t> tag = AES.aesGCM(Plaintext, AAD, key, IV, 0, expected_tag, counter);
+
+//     cout << "Ciphertext: " << endl;
+//     cout << toHexString2(Plaintext) << endl;
+
+//     cout << "Tag: " << endl;
+//     cout << toHexString2(tag) << endl;
+
+
+
+//     return 0;
+// }
+
+
+
+// int main(int argc, char* argv[])
+// {
+//     vector<uint8_t> key = fromHexString("feffe9928665731c6d6a8f9467308308feffe9928665731c6d6a8f9467308308");
+//     vector<uint8_t> Plaintext = fromHexString("d9313225f88406e5a55909c5aff5269a86a7a9531534f7da2e4c303d8a318a721c3c0c95956809532fcf0e2449a6b525b16aedf5aa0de657ba637b39");
+//     vector<uint8_t> AAD = fromHexString("feedfacedeadbeeffeedfacedeadbeefabaddad2");
+//     vector<uint8_t> IV = fromHexString("9313225df88406e555909c5aff5269aa6a7a9538534f7da1e4c303d2a318a728c3c0c95156809539fcf0e2429a6b525416aedbf5a0de6a57a637b39b");
+//     vector<uint8_t> counter = fromHexString("00000001");
+//     vector<uint8_t> expected_tag = fromHexString("");
+
+
+//     cout << toHexString2(key) << endl;
+//     cout << toHexString2(IV) << endl;
+//     cout << toHexString2(Plaintext) << endl;
+//     cout << toHexString2(AAD) << endl;
+//     cout << toHexString2(counter) << endl;
+//     cout << toHexString2(expected_tag) << endl;
+
+
+//     libAES AES;
+
+//     vector<uint8_t> tag = AES.aesGCM(Plaintext, AAD, key, IV, 0, expected_tag, counter);
+
+//     cout << "Ciphertext: " << endl;
+//     cout << toHexString2(Plaintext) << endl;
+
+//     cout << "Tag: " << endl;
+//     cout << toHexString2(tag) << endl;
+
+
+
+//     return 0;
+// }

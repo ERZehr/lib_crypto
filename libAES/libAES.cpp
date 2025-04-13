@@ -8,6 +8,14 @@
 
 using namespace std;
 
+string toHexString(const vector<uint8_t>& data) {
+    ostringstream oss;
+    for (uint8_t byte : data) {
+        oss << hex << setw(2) << std::setfill('0') << static_cast<int>(byte);
+    }
+    return oss.str();
+}
+
 
 void libAES::printBinaryVector(const vector<uint8_t>& binary_data) {
     for (uint8_t byte : binary_data) {
@@ -718,27 +726,32 @@ void libAES::aes256Inv(vector<uint8_t>& block, vector<uint8_t>& key)
 vector<uint8_t> libAES::gfMult128(const vector<uint8_t>& X, const vector<uint8_t>& Y)
 {
     vector<uint8_t> Z = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-    vector<uint8_t> V = X;
-    bool carry;
+    vector<uint8_t> V = Y;
 
-    for(int i = 0; i < 128; i++)
+    for (int i = 0; i < 128; ++i)
     {
-        if ((Y[15 - i / 8] >> (i % 8)) & 1) // if our bit = 1
-            for (int j = 0; j < 16; j++)
+        int byte_index = i / 8;
+        int bit_index = 7 - (i % 8);
+        bool xbit = (X[byte_index] >> bit_index) & 1;
+
+        if (xbit) {
+            for (int j = 0; j < 16; ++j)
                 Z[j] ^= V[j];
-        
-        carry = (V[0] & 0x80);
+        }
 
-        for (int j = 0; j < 15; j++)
-            V[j] = (V[j] << 1) | (V[j + 1] >> 7);
-        V[15] <<= 1;
+        bool carry = V[15] & 1;
+        for (int j = 15; j > 0; --j) {
+            V[j] = (V[j] >> 1) | ((V[j - 1] & 0x01) << 7);
+        }
+        V[0] >>= 1;
 
-        if(carry)
-            V[15] ^= 0x87;
+        if (carry) {
+            V[0] ^= 0xE1;
+        }
     }
+
     return Z;
 }
-
 
 
 void libAES::aesECB(vector<uint8_t>& binaryData, vector<uint8_t>& key, int enc_dec)
@@ -937,7 +950,7 @@ void libAES::aesCFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
 
     if(!enc_dec) // encryption
     {
-        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
+        for(int i = 0; i < (static_cast<int>(binaryData.size()) + 15) / 16 ; i++)
         {
             key = key_saver;
             if(key.size() == 16) // 128 bit
@@ -961,7 +974,7 @@ void libAES::aesCFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
     {
         vector<uint8_t> save_cipher;
 
-        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
+        for(int i = 0; i < (static_cast<int>(binaryData.size()) + 15) / 16 ; i++)
         {
             key = key_saver;
             if(key.size() == 16) // 128 bit
@@ -995,7 +1008,7 @@ void libAES::aesCFB(const string& filename, vector<uint8_t>& key, const vector<u
 
     if(!enc_dec) // encryption
     {
-        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
+        for(int i = 0; i < (static_cast<int>(binaryData.size()) + 15) / 16 ; i++)
         {
             key = key_saver;
             if(key.size() == 16) // 128 bit
@@ -1019,7 +1032,7 @@ void libAES::aesCFB(const string& filename, vector<uint8_t>& key, const vector<u
     {
         vector<uint8_t> save_cipher;
 
-        for(int i = 0; i < static_cast<int>(binaryData.size()) / 16; i++)
+        for(int i = 0; i < (static_cast<int>(binaryData.size()) + 15) / 16 ; i++)
         {
             key = key_saver;
             if(key.size() == 16) // 128 bit
@@ -1144,9 +1157,7 @@ void libAES::aesCTR(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
         // cumbersome increment of iv
         num++;
         for (int j = 0; j < 4; j++) 
-        {
             nonce_counter_saver[iv.size() + j] = num >> ((3 - j) * 8) & 0xFF;
-        }
     }
 }
 
@@ -1187,47 +1198,29 @@ void libAES::aesCTR(const string& filename, vector<uint8_t>& key, const vector<u
         // cumbersome increment of iv
         num++;
         for (int j = 0; j < 4; j++) 
-        {
             nonce_counter_saver[iv.size() + j] = num >> ((3 - j) * 8) & 0xFF;
-        }
     }
 
     AES.binaryToFile(binaryData, filename);
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-vector<uint8_t> libAES::aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& AAD, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, const vector<uint8_t>& expected_tag, vector<uint8_t> counter = {0x00,0x00,0x00,0x00})
+vector<uint8_t> libAES::aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& AAD, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, const vector<uint8_t>& expected_tag, vector<uint8_t> counter = {0x00,0x00,0x00,0x01})
 {
     libAES AES;
     vector<uint8_t> block;
     vector<uint8_t> key_saver = key;
     vector<uint8_t> nonce_counter;
-    vector<uint8_t> nonce_counter_saver = iv;
-    vector<uint8_t> GHASH;
+    vector<uint8_t> nonce_counter_saver;
     vector<uint8_t> encNonce;
-    uint32_t num = (static_cast<uint32_t>(counter[0]) << 24) | (static_cast<uint32_t>(counter[1]) << 16) | (static_cast<uint32_t>(counter[2]) << 8)  | (static_cast<uint32_t>(counter[3]));
+    uint32_t num;
     vector<uint8_t> H = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+    vector<uint8_t> GHASH = H;
     vector<uint8_t> length_vector;
+
+    // get lengths of data and AAD for verification
+    uint64_t data_length = binaryData.size();
+    uint64_t AAD_length = AAD.size();
 
     // verify key size
     if(key.size() != 16 && key.size() != 24 && key.size() != 32)
@@ -1244,132 +1237,330 @@ vector<uint8_t> libAES::aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& AAD
     // create nonce and encrypt
     if(iv.size() == 12)
     {
-        nonce_counter_saver.insert(nonce_counter_saver.end(), counter.begin(), counter.end());
-        encNonce = nonce_counter_saver;
-        if(key.size() == 16)      // 128 bit
-            AES.aes128(encNonce, key);
-        else if(key.size() == 24) // 192 bit
-            AES.aes192(encNonce, key);
-        else                      // 256 bit
-            AES.aes256(encNonce, key);
-
-        // cumbersome increment of iv
-        for (int i = 0; i < 4; i++)
-            nonce_counter_saver.pop_back();
-        num++;
-        for (int i = 0; i < 4; i++)
-            nonce_counter_saver.push_back(num >> ((3 - i) * 8) & 0xFF);
+        nonce_counter_saver = iv;
+        for(int i = 0; i < 4; i ++)
+            nonce_counter_saver.push_back(counter[i]);
+        num = (static_cast<uint32_t>(counter[0]) << 24) | (static_cast<uint32_t>(counter[1]) << 16) | (static_cast<uint32_t>(counter[2]) << 8)  | (static_cast<uint32_t>(counter[3]));
     }
     else
-        throw("Incorrect IV length");
-        // technically support for this section is outlined in the spec. So I'll get to it later
+    {
+        nonce_counter_saver = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+        // calculate padding
+        vector<uint8_t> iv_padded = iv;
+        while(iv_padded.size() % 16 != 0)
+            iv_padded.push_back(0x00);
+        for (int i = 0; i < 8; i++)
+            iv_padded.push_back(0x00);
+
+        // append length value
+        uint64_t iv_bitlen = iv.size() * 8;
+        for (int i = 0; i < 8; i++)
+            iv_padded.push_back((iv_bitlen >> (56 - i * 8)) & 0xFF);
+
+        // compress the nonce_counter_saver 
+        for (uint64_t i = 0; i < iv_padded.size() / 16; i++) 
+        {
+            vector<uint8_t> block(iv_padded.begin() + (i * 16), iv_padded.begin() + (i + 1) * 16);
+            AES.addRoundKey(nonce_counter_saver, block);
+            nonce_counter_saver = AES.gfMult128(nonce_counter_saver, H);
+        }
+        num = (static_cast<uint32_t>(nonce_counter_saver[12]) << 24) | (static_cast<uint32_t>(nonce_counter_saver[13]) << 16) | (static_cast<uint32_t>(nonce_counter_saver[14]) << 8)  | (static_cast<uint32_t>(nonce_counter_saver[15]));
+    }
+
+    encNonce = nonce_counter_saver;
+    key = key_saver;
+    if(key.size() == 16)      // 128 bit
+        AES.aes128(encNonce, key);
+    else if(key.size() == 24) // 192 bit
+        AES.aes192(encNonce, key);
+    else                      // 256 bit
+        AES.aes256(encNonce, key);
+
+    num++;
+    for (int j = 0; j < 4; j++) 
+        nonce_counter_saver[12 + j] = num >> ((3 - j) * 8) & 0xFF;
     
 
     // Pad binary AAD with zeros for authentication
-    while(AAD.size() % 16 != 0)
-        AAD.insert(AAD.end(), 0x00);
-
-    // get lengths of data and AAD for verification
-    uint64_t data_length = binaryData.size();
-    uint64_t AAD_length = AAD.size();
-
-    // Handle AAD verification
-    if(AAD_length > static_cast<uint64_t>(0))
+    if(AAD.size() > 0)
     {
-        GHASH = AES.gfMult128(vector<uint8_t>(AAD.begin(), AAD.begin() + 16), H);
-        cout << "GHASH: " << endl;
-        printBinaryVector(GHASH);
-        for(uint64_t i = 1; i < AAD_length / static_cast<uint64_t>(16); i++)
+        int AAD_padding_counter = 0;
+        while(AAD.size() % 16 != 0)
         {
-            AES.addRoundKey(GHASH, vector<uint8_t>(AAD.begin() + (i * static_cast<uint64_t>(16)), AAD.begin() + ((i + static_cast<uint64_t>(1)) * static_cast<uint64_t>(16))));
-            GHASH = AES.gfMult128(GHASH, H);
-            cout << "GHASH: " << endl;
-            printBinaryVector(GHASH);
+            AAD.insert(AAD.end(), 0x00);
+            AAD_padding_counter++;
         }
+        for(uint64_t i = 0; i < AAD.size() / 16; i++)
+        {
+            AES.addRoundKey(GHASH, vector<uint8_t>(AAD.begin() + (i * 16), AAD.begin() + (i + 1) * 16));
+            GHASH = AES.gfMult128(GHASH, H);
+        }
+        for(int i = 0; i < AAD_padding_counter; i++)
+            AAD.pop_back();
     }
-    
-    cout << "Encryption Stage" << endl << endl;
 
-    for(uint64_t i = 0; i < data_length / static_cast<uint64_t>(16); i++)
+    // encryption
+    for(uint64_t i = 0; i < (data_length + 15) / 16; i++)
     {
         key = key_saver;
         nonce_counter = nonce_counter_saver;
+
         if(key.size() == 16)      // 128 bit
             AES.aes128(nonce_counter, key);
         else if(key.size() == 24) // 192 bit
             AES.aes192(nonce_counter, key);
         else                      // 256 bit
             AES.aes256(nonce_counter, key);
-        block = vector<uint8_t>(binaryData.begin() + (i * static_cast<uint64_t>(16)), binaryData.begin() + ((i + static_cast<uint64_t>(1)) * static_cast<uint64_t>(16)));
-        AES.addRoundKey(block, nonce_counter);
-        copy(block.begin(), block.end(), binaryData.begin() + (i * static_cast<uint64_t>(16)));
-        
-        cout << "Encrypted Block: " << endl;
-        printBinaryVector(block);
-        
-        // authenticate data
-        if(i == 0 && AAD_length <= static_cast<uint64_t>(0))
-        {
-            GHASH = AES.gfMult128(block, H);
-            cout << "GHASH: " << endl;
-            printBinaryVector(GHASH);
-        }
+
+        if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
         else
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.end());
+        
+        if(enc_dec) // decryption
         {
+            int pad_counter = 0;
+            if(block.size() % 16 != 0)
+            {
+                while(block.size() % 16 != 0)
+                {
+                    block.push_back(0x00);
+                    pad_counter++;
+                }
+            }
+            
             AES.addRoundKey(GHASH, block);
             GHASH = AES.gfMult128(GHASH, H);
-            cout << "GHASH: " << endl;
-            printBinaryVector(GHASH);
+
+            for(int i = 0; i < pad_counter; i++)
+                block.pop_back();
+        }
+
+        AES.addRoundKey(block, nonce_counter);
+        copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+        
+        if(!enc_dec) // encryption
+        {
+            int pad_counter = 0;
+            if(block.size() % 16 != 0)
+            {
+                while(block.size() % 16 != 0)
+                {
+                    block.push_back(0x00);
+                    pad_counter++;
+                }
+            }
+            
+            AES.addRoundKey(GHASH, block);
+            GHASH = AES.gfMult128(GHASH, H);
+
+            for(int i = 0; i < pad_counter; i++)
+                block.pop_back();
         }
 
         // cumbersome increment of iv
-        for (int i = 0; i < 4; i++)
-            nonce_counter_saver.pop_back();
         num++;
-        for (int i = 0; i < 4; i++)
-            nonce_counter_saver.push_back(num >> ((3 - i) * 8) & 0xFF);
+        for (int j = 0; j < 4; j++) 
+            nonce_counter_saver[12 + j] = num >> ((3 - j) * 8) & 0xFF;
     }
 
     // handle length verification
     for (int i = 0; i < 8; i++)
-        length_vector.push_back(AAD_length >> (56 - 8 * i));
+        length_vector.push_back((AAD_length * 8) >> (56 - 8 * i));
     for (int i = 0; i < 8; i++)
-        length_vector.push_back(data_length >> (56 - 8 * i));
-    
-    cout << "lenght vector" << endl;
-    printBinaryVector(length_vector);
-
+        length_vector.push_back((data_length * 8) >> (56 - 8 * i));
+        
     AES.addRoundKey(GHASH, length_vector);
-
-    cout << "GHASH: " << endl;
-    printBinaryVector(GHASH);
-
     GHASH = AES.gfMult128(GHASH, H);
-
-    cout << "GHASH: " << endl;
-    printBinaryVector(GHASH);
-    
     AES.addRoundKey(GHASH, encNonce);
 
-    cout << "GHASH: " << endl;
-    printBinaryVector(GHASH);
-
-
-    if(enc_dec) // decryption
-    { 
-        if(AAD_length > static_cast<uint64_t>(0)){
-            AES.unpadBinary(AAD);
-            cout << "Unpadded AAD: " << endl;
-            printBinaryVector(AAD);
-        }
-    }
+    if (enc_dec)
+        if (GHASH != expected_tag)
+            throw("Tag mismatch: authentication failed");
 
     return GHASH;
 }
 
 
-vector<uint8_t> libAES::aesGCM(const string& filename, const string& AAD, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, const vector<uint8_t>& expected_tag, vector<uint8_t> counter = {0x00,0x00,0x00,0x00})
+vector<uint8_t> libAES::aesGCM(const string& filename, const string& AAD_filename, vector<uint8_t>& key, const vector<uint8_t>& iv, int enc_dec, const vector<uint8_t>& expected_tag, vector<uint8_t> counter = {0x00,0x00,0x00,0x00})
 {
-    vector<uint8_t> GHASH;
+    libAES AES;
+    vector<uint8_t> binaryData = AES.fileToBinary(filename);
+    vector<uint8_t> AAD;
+    try{ // AAD is not neccessary
+        AAD = AES.fileToBinary(AAD_filename);}
+    catch (const exception& e){}
+
+    vector<uint8_t> block;
+    vector<uint8_t> key_saver = key;
+    vector<uint8_t> nonce_counter;
+    vector<uint8_t> nonce_counter_saver;
+    vector<uint8_t> encNonce;
+    uint32_t num;
+    vector<uint8_t> H = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+    vector<uint8_t> GHASH = H;
+    vector<uint8_t> length_vector;
+
+    // get lengths of data and AAD for verification
+    uint64_t data_length = binaryData.size();
+    uint64_t AAD_length = AAD.size();
+
+    // verify key size
+    if(key.size() != 16 && key.size() != 24 && key.size() != 32)
+        throw("Invalid Key length");
+
+    // Create H
+    if(key.size() == 16)      // 128 bit
+        AES.aes128(H, key);
+    else if(key.size() == 24) // 192 bit
+        AES.aes192(H, key);
+    else                      // 256 bit
+        AES.aes256(H, key);
+
+    // create nonce and encrypt
+    if(iv.size() == 12)
+    {
+        nonce_counter_saver = iv;
+        for(int i = 0; i < 4; i ++)
+            nonce_counter_saver.push_back(counter[i]);
+        num = (static_cast<uint32_t>(counter[0]) << 24) | (static_cast<uint32_t>(counter[1]) << 16) | (static_cast<uint32_t>(counter[2]) << 8)  | (static_cast<uint32_t>(counter[3]));
+    }
+    else
+    {
+        nonce_counter_saver = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+        // calculate padding
+        vector<uint8_t> iv_padded = iv;
+        while(iv_padded.size() % 16 != 0)
+            iv_padded.push_back(0x00);
+        for (int i = 0; i < 8; i++)
+            iv_padded.push_back(0x00);
+
+        // append length value
+        uint64_t iv_bitlen = iv.size() * 8;
+        for (int i = 0; i < 8; i++)
+            iv_padded.push_back((iv_bitlen >> (56 - i * 8)) & 0xFF);
+
+        // compress the nonce_counter_saver 
+        for (uint64_t i = 0; i < iv_padded.size() / 16; i++) 
+        {
+            vector<uint8_t> block(iv_padded.begin() + (i * 16), iv_padded.begin() + (i + 1) * 16);
+            AES.addRoundKey(nonce_counter_saver, block);
+            nonce_counter_saver = AES.gfMult128(nonce_counter_saver, H);
+        }
+        num = (static_cast<uint32_t>(nonce_counter_saver[12]) << 24) | (static_cast<uint32_t>(nonce_counter_saver[13]) << 16) | (static_cast<uint32_t>(nonce_counter_saver[14]) << 8)  | (static_cast<uint32_t>(nonce_counter_saver[15]));
+    }
+
+    encNonce = nonce_counter_saver;
+    key = key_saver;
+    if(key.size() == 16)      // 128 bit
+        AES.aes128(encNonce, key);
+    else if(key.size() == 24) // 192 bit
+        AES.aes192(encNonce, key);
+    else                      // 256 bit
+        AES.aes256(encNonce, key);
+
+    num++;
+    for (int j = 0; j < 4; j++) 
+        nonce_counter_saver[12 + j] = num >> ((3 - j) * 8) & 0xFF;
+    
+
+    // Pad binary AAD with zeros for authentication
+    if(AAD.size() > 0)
+    {
+        int AAD_padding_counter = 0;
+        while(AAD.size() % 16 != 0)
+        {
+            AAD.insert(AAD.end(), 0x00);
+            AAD_padding_counter++;
+        }
+        for(uint64_t i = 0; i < AAD.size() / 16; i++)
+        {
+            AES.addRoundKey(GHASH, vector<uint8_t>(AAD.begin() + (i * 16), AAD.begin() + (i + 1) * 16));
+            GHASH = AES.gfMult128(GHASH, H);
+        }
+        for(int i = 0; i < AAD_padding_counter; i++)
+            AAD.pop_back();
+    }
+
+    // encryption
+    for(uint64_t i = 0; i < (data_length + 15) / 16; i++)
+    {
+        key = key_saver;
+        nonce_counter = nonce_counter_saver;
+
+        if(key.size() == 16)      // 128 bit
+            AES.aes128(nonce_counter, key);
+        else if(key.size() == 24) // 192 bit
+            AES.aes192(nonce_counter, key);
+        else                      // 256 bit
+            AES.aes256(nonce_counter, key);
+
+        if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
+        else
+            block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.end());
+        
+        if(enc_dec) // decryption
+        {
+            int pad_counter = 0;
+            if(block.size() % 16 != 0)
+            {
+                while(block.size() % 16 != 0)
+                {
+                    block.push_back(0x00);
+                    pad_counter++;
+                }
+            }
+            
+            AES.addRoundKey(GHASH, block);
+            GHASH = AES.gfMult128(GHASH, H);
+
+            for(int i = 0; i < pad_counter; i++)
+                block.pop_back();
+        }
+
+        AES.addRoundKey(block, nonce_counter);
+        copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
+        
+        if(!enc_dec) // encryption
+        {
+            int pad_counter = 0;
+            if(block.size() % 16 != 0)
+            {
+                while(block.size() % 16 != 0)
+                {
+                    block.push_back(0x00);
+                    pad_counter++;
+                }
+            }
+            
+            AES.addRoundKey(GHASH, block);
+            GHASH = AES.gfMult128(GHASH, H);
+
+            for(int i = 0; i < pad_counter; i++)
+                block.pop_back();
+        }
+
+        // cumbersome increment of iv
+        num++;
+        for (int j = 0; j < 4; j++) 
+            nonce_counter_saver[12 + j] = num >> ((3 - j) * 8) & 0xFF;
+    }
+
+    // handle length verification
+    for (int i = 0; i < 8; i++)
+        length_vector.push_back((AAD_length * 8) >> (56 - 8 * i));
+    for (int i = 0; i < 8; i++)
+        length_vector.push_back((data_length * 8) >> (56 - 8 * i));
+        
+    AES.addRoundKey(GHASH, length_vector);
+    GHASH = AES.gfMult128(GHASH, H);
+    AES.addRoundKey(GHASH, encNonce);
+
+    if (enc_dec)
+        if (GHASH != expected_tag)
+            throw("Tag mismatch: authentication failed");
+
+    AES.binaryToFile(binaryData, filename);      
     return GHASH;
 }
