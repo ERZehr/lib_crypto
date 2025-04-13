@@ -8,15 +8,6 @@
 
 using namespace std;
 
-string toHexString(const vector<uint8_t>& data) {
-    ostringstream oss;
-    for (uint8_t byte : data) {
-        oss << hex << setw(2) << std::setfill('0') << static_cast<int>(byte);
-    }
-    return oss.str();
-}
-
-
 void libAES::printBinaryVector(const vector<uint8_t>& binary_data) {
     for (uint8_t byte : binary_data) {
         for (int i = 7; i >= 0; --i) {
@@ -767,12 +758,14 @@ void libAES::aesECB(vector<uint8_t>& binaryData, vector<uint8_t>& key, int enc_d
         {
             key = key_saver;
             block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-            if(key.size() == 16) // 128 bit
+            if(key.size() == 16)      // 128 bit
                 AES.aes128(block, key);
             else if(key.size() == 24) // 192 bit
                 AES.aes192(block, key);
-            else // 256 bit
+            else if(key.size() == 24) // 256 bit
                 AES.aes256(block, key);
+            else
+                throw runtime_error("Invalid key length.");
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
         }
     }
@@ -782,12 +775,14 @@ void libAES::aesECB(vector<uint8_t>& binaryData, vector<uint8_t>& key, int enc_d
         {
             key = key_saver;
             block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-            if(key.size() == 16) // 128 bit
+            if(key.size() == 16)      // 128 bit
                 AES.aes128Inv(block, key);
             else if(key.size() == 24) // 192 bit
                 AES.aes192Inv(block, key);
-            else
+            else if(key.size() == 24) // 256 bit
                 AES.aes256Inv(block, key);
+            else
+                throw runtime_error("Invalid key length.");
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
         }
         AES.unpadBinary(binaryData);
@@ -809,12 +804,14 @@ void libAES::aesECB(const string& filename, vector<uint8_t>& key, int enc_dec)
         {
             key = key_saver;
             block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-            if(key.size() == 16) // 128 bit
+            if(key.size() == 16)      // 128 bit
                 AES.aes128(block, key);
             else if(key.size() == 24) // 192 bit
                 AES.aes192(block, key);
-            else // 256 bit
+            else if(key.size() == 32) // 256 bit
                 AES.aes256(block, key);
+            else
+                throw runtime_error("Invalid key length.");
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
         }
     }
@@ -824,12 +821,14 @@ void libAES::aesECB(const string& filename, vector<uint8_t>& key, int enc_dec)
         {
             key = key_saver;
             block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
-            if(key.size() == 16) // 128 bit
+            if(key.size() == 16)      // 128 bit
                 AES.aes128Inv(block, key);
             else if(key.size() == 24) // 192 bit
                 AES.aes192Inv(block, key);
-            else
+            else if(key.size() == 32) // 256 bit
                 AES.aes256Inv(block, key);
+            else
+                throw runtime_error("Invalid key length.");
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
         }
         AES.unpadBinary(binaryData);
@@ -843,6 +842,9 @@ void libAES::aesCBC(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
     libAES AES;
     vector<uint8_t> block;
     vector<uint8_t> key_saver = key;
+
+    if(iv.size() != 16)
+        throw runtime_error("Invalid IV length");
     vector<uint8_t> current_iv = iv;
 
 
@@ -859,8 +861,10 @@ void libAES::aesCBC(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
                 AES.aes128(block, key);
             else if(key.size() == 24)
                 AES.aes192(block, key);
-            else
+            else if(key.size() == 32)
                 AES.aes256(block, key);
+            else
+                throw runtime_error("Invalid key length.");
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
             current_iv = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
         }
@@ -878,8 +882,10 @@ void libAES::aesCBC(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
                 AES.aes128Inv(block, key);
             else if(key.size() == 24) 
                 AES.aes192Inv(block, key);
-            else
+            else if(key.size() == 32)
                 AES.aes256Inv(block, key);
+            else
+                throw runtime_error("Invalid key length.");
             AES.addRoundKey(block, current_iv);
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
             current_iv = save_cipher;
@@ -894,6 +900,9 @@ void libAES::aesCBC(const string& filename, vector<uint8_t>& key, const vector<u
     libAES AES;
     vector<uint8_t> binaryData = AES.fileToBinary(filename);
     vector<uint8_t> key_saver = key;
+
+    if(iv.size() != 16)
+        throw runtime_error("Invalid IV length");
     vector<uint8_t> current_iv = iv;
     vector<uint8_t> block;
 
@@ -910,8 +919,10 @@ void libAES::aesCBC(const string& filename, vector<uint8_t>& key, const vector<u
                 AES.aes128(block, key);
             else if(key.size() == 24)
                 AES.aes192(block, key);
-            else
+            else if(key.size() == 32)
                 AES.aes256(block, key);
+            else
+                throw runtime_error("Invalid key length.");
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
             current_iv = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
         }
@@ -929,8 +940,10 @@ void libAES::aesCBC(const string& filename, vector<uint8_t>& key, const vector<u
                 AES.aes128Inv(block, key);
             else if(key.size() == 24) 
                 AES.aes192Inv(block, key);
-            else
+            else if(key.size() == 32)
                 AES.aes256Inv(block, key);
+            else
+                throw runtime_error("Invalid key length.");
             AES.addRoundKey(block, current_iv);
             copy(block.begin(), block.end(), binaryData.begin() + (i * 16));
             current_iv = save_cipher;
@@ -946,6 +959,9 @@ void libAES::aesCFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
     libAES AES;
     vector<uint8_t> block;
     vector<uint8_t> key_saver = key;
+
+    if(iv.size() != 16)
+        throw runtime_error("Invalid IV length");
     vector<uint8_t> current_iv = iv;
 
     if(!enc_dec) // encryption
@@ -953,12 +969,14 @@ void libAES::aesCFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
         for(int i = 0; i < (static_cast<int>(binaryData.size()) + 15) / 16 ; i++)
         {
             key = key_saver;
-            if(key.size() == 16) // 128 bit
+            if(key.size() == 16)      // 128 bit
                 AES.aes128(current_iv, key);
             else if(key.size() == 24) // 192 bit
                 AES.aes192(current_iv, key);
-            else // 256 bit
+            else if(key.size() == 32)  // 256 bit
                 AES.aes256(current_iv, key);
+            else
+                throw runtime_error("Invalid key length.");
 
             if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
                 block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
@@ -977,12 +995,14 @@ void libAES::aesCFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
         for(int i = 0; i < (static_cast<int>(binaryData.size()) + 15) / 16 ; i++)
         {
             key = key_saver;
-            if(key.size() == 16) // 128 bit
+            if(key.size() == 16)      // 128 bit
                 AES.aes128(current_iv, key);
             else if(key.size() == 24) // 192 bit
                 AES.aes192(current_iv, key);
+            else if(key.size() == 32)  // 256 bit
+                AES.aes256(current_iv, key);
             else
-                AES.aes256(current_iv, key);// 256 bit
+                throw runtime_error("Invalid key length.");
             
             if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
                 block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
@@ -1003,6 +1023,9 @@ void libAES::aesCFB(const string& filename, vector<uint8_t>& key, const vector<u
     libAES AES;
     vector<uint8_t> binaryData = AES.fileToBinary(filename);
     vector<uint8_t> key_saver = key;
+
+    if(iv.size() != 16)
+        throw runtime_error("Invalid IV length");
     vector<uint8_t> current_iv = iv;
     vector<uint8_t> block;
 
@@ -1011,12 +1034,14 @@ void libAES::aesCFB(const string& filename, vector<uint8_t>& key, const vector<u
         for(int i = 0; i < (static_cast<int>(binaryData.size()) + 15) / 16 ; i++)
         {
             key = key_saver;
-            if(key.size() == 16) // 128 bit
+            if(key.size() == 16)      // 128 bit
                 AES.aes128(current_iv, key);
             else if(key.size() == 24) // 192 bit
                 AES.aes192(current_iv, key);
-            else // 256 bit
+            else if(key.size() == 32)  // 256 bit
                 AES.aes256(current_iv, key);
+            else
+                throw runtime_error("Invalid key length.");
             
             if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
                 block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
@@ -1039,8 +1064,10 @@ void libAES::aesCFB(const string& filename, vector<uint8_t>& key, const vector<u
                 AES.aes128(current_iv, key);
             else if(key.size() == 24) // 192 bit
                 AES.aes192(current_iv, key);
-            else
+            else if(key.size() == 32)  // 256 bit
                 AES.aes256(current_iv, key);// 256 bit
+            else
+                throw runtime_error("Invalid key length.");
 
             if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
                 block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
@@ -1062,6 +1089,9 @@ void libAES::aesOFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
     libAES AES;
     vector<uint8_t> block;
     vector<uint8_t> key_saver = key;
+
+    if(iv.size() != 16)
+        throw runtime_error("Invalid IV length");
     vector<uint8_t> current_iv = iv;
     vector<uint8_t> save_new_iv;
 
@@ -1073,8 +1103,10 @@ void libAES::aesOFB(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
             AES.aes128(current_iv, key);
         else if(key.size() == 24)
             AES.aes192(current_iv, key);
-        else
+        else if(key.size() == 32)
             AES.aes256(current_iv, key);
+        else
+            throw runtime_error("Invalid key length.");
 
         save_new_iv = current_iv;
         if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
@@ -1093,6 +1125,9 @@ void libAES::aesOFB(const string& filename, vector<uint8_t>& key, const vector<u
     libAES AES;
     vector<uint8_t> binaryData = AES.fileToBinary(filename);
     vector<uint8_t> key_saver = key;
+    
+    if(iv.size() != 16)
+        throw runtime_error("Invalid IV length");
     vector<uint8_t> current_iv = iv;
     vector<uint8_t> block;
     vector<uint8_t> save_new_iv;
@@ -1105,8 +1140,10 @@ void libAES::aesOFB(const string& filename, vector<uint8_t>& key, const vector<u
             AES.aes128(current_iv, key);
         else if(key.size() == 24)
             AES.aes192(current_iv, key);
-        else
+        else if(key.size() == 32)
             AES.aes256(current_iv, key);
+        else
+            throw runtime_error("Invalid key length.");
 
         save_new_iv = current_iv;
         if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
@@ -1139,12 +1176,14 @@ void libAES::aesCTR(vector<uint8_t>& binaryData, vector<uint8_t>& key, const vec
         key = key_saver;
         nonce_counter = nonce_counter_saver;
         
-        if(key.size() == 16) // 128 bit
+        if(key.size() == 16)      // 128 bit
             AES.aes128(nonce_counter, key);
         else if(key.size() == 24) // 192 bit
             AES.aes192(nonce_counter, key);
-        else // 256 bit
+        else if(key.size() == 32)  // 256 bit
             AES.aes256(nonce_counter, key);
+        else
+            throw runtime_error("Invalid key length.");
         
         if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
             block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
@@ -1180,12 +1219,14 @@ void libAES::aesCTR(const string& filename, vector<uint8_t>& key, const vector<u
         key = key_saver;
         nonce_counter = nonce_counter_saver;
         
-        if(key.size() == 16) // 128 bit
+        if(key.size() == 16)      // 128 bit
             AES.aes128(nonce_counter, key);
         else if(key.size() == 24) // 192 bit
             AES.aes192(nonce_counter, key);
-        else // 256 bit
+        else if(key.size() == 32) // 256 bit
             AES.aes256(nonce_counter, key);
+        else 
+            throw runtime_error("Invalid key length.");
         
         if(binaryData.begin() + ((i + 1) * 16) < binaryData.end()) // check if we are on a 16 byte block or not
             block = vector<uint8_t>(binaryData.begin() + (i * 16), binaryData.begin() + ((i + 1) * 16));
@@ -1222,17 +1263,15 @@ vector<uint8_t> libAES::aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& AAD
     uint64_t data_length = binaryData.size();
     uint64_t AAD_length = AAD.size();
 
-    // verify key size
-    if(key.size() != 16 && key.size() != 24 && key.size() != 32)
-        throw("Invalid Key length");
-
-    // Create H
+    // Create H and verify key size
     if(key.size() == 16)      // 128 bit
         AES.aes128(H, key);
     else if(key.size() == 24) // 192 bit
         AES.aes192(H, key);
-    else                      // 256 bit
+    else if(key.size() == 32) // 256 bit
         AES.aes256(H, key);
+    else
+        throw runtime_error("Invalid Key length");
 
     // create nonce and encrypt
     if(iv.size() == 12)
@@ -1376,7 +1415,7 @@ vector<uint8_t> libAES::aesGCM(vector<uint8_t>& binaryData, vector<uint8_t>& AAD
 
     if (enc_dec)
         if (GHASH != expected_tag)
-            throw("Tag mismatch: authentication failed");
+            throw runtime_error("Tag mismatch: authentication failed");
 
     return GHASH;
 }
@@ -1405,17 +1444,15 @@ vector<uint8_t> libAES::aesGCM(const string& filename, const string& AAD_filenam
     uint64_t data_length = binaryData.size();
     uint64_t AAD_length = AAD.size();
 
-    // verify key size
-    if(key.size() != 16 && key.size() != 24 && key.size() != 32)
-        throw("Invalid Key length");
-
-    // Create H
+    // Create H and verify key size
     if(key.size() == 16)      // 128 bit
         AES.aes128(H, key);
     else if(key.size() == 24) // 192 bit
         AES.aes192(H, key);
-    else                      // 256 bit
+    else if(key.size() == 32) // 256 bit
         AES.aes256(H, key);
+    else
+        throw runtime_error("Invalid Key length");
 
     // create nonce and encrypt
     if(iv.size() == 12)
@@ -1559,7 +1596,7 @@ vector<uint8_t> libAES::aesGCM(const string& filename, const string& AAD_filenam
 
     if (enc_dec)
         if (GHASH != expected_tag)
-            throw("Tag mismatch: authentication failed");
+            throw runtime_error("Tag mismatch: authentication failed");
 
     AES.binaryToFile(binaryData, filename);      
     return GHASH;
