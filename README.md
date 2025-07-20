@@ -1,4 +1,4 @@
-In this library, I encorperate 6 AES modes: ECB, CBC, CFB, OFB, CTR, and GCM
+In this library, I incorperate 6 AES modes: ECB, CBC, CFB, OFB, CTR, and GCM
 
 In the test directory, there are scritps to test against the NIST test vectors if you want to verify functionality. To get the NIST test vectors, go here: https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Block-Ciphers
 Test syntax is: ./run_aes_{mode}_test.sh {testvector.rsp} main
